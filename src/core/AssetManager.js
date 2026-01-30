@@ -7,17 +7,21 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
  * Preloads all game assets before gameplay to prevent lag spikes.
  */
 
+// Base URL from Vite (correctly handles GitHub Pages subfolders)
+const BASE = import.meta.env.BASE_URL;
+
 // Asset manifest - all assets to preload
 const ASSET_MANIFEST = {
   models: {
-    missile: '/src/models/missile/0/scene.gltf',
-    explosion: '/src/models/explosions/0/scene.gltf',
-    weapon: '/src/models/weapons/sci-fi-weapon/scene.gltf',
-    arena: '/src/models/maps/0/scene.gltf',
+    missile: `${BASE}models/missile/0/scene.gltf`,
+    explosion: `${BASE}models/explosions/0/scene.gltf`,
+    weapon: `${BASE}models/weapons/sci-fi-weapon/scene.gltf`,
+    map_orbital: `${BASE}models/maps/0/scene.gltf`,
+    map_gladiator: `${BASE}models/maps/1/scene.gltf`,
   },
   textures: {
-    explosionBlue: '/src/models/explosions/0/textures/Fire_diffuse_blue.png',
-    explosionOrange: '/src/models/explosions/0/textures/Fire_diffuse_orange.png',
+    explosionBlue: `${BASE}models/explosions/0/textures/Fire_diffuse_blue.png`,
+    explosionOrange: `${BASE}models/explosions/0/textures/Fire_diffuse_orange.png`,
   },
 };
 

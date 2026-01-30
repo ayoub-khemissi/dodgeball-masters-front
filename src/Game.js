@@ -40,6 +40,7 @@ export class Game {
     this.clock = new THREE.Clock();
     this.lastInputTime = 0;
     this.explosions = [];
+    this.explosionPools = { player: [], bot: [] };
     this.deflectEffects = [];
 
     // Initialize all systems
@@ -72,9 +73,15 @@ export class Game {
   }
 
   initEntities() {
+    // Get saved map or default
+    const savedMap = localStorage.getItem('dodgeball_map_selection') || 'orbital';
+
     // Arena
-    this.arena = new Arena();
+    this.arena = new Arena(savedMap);
     this.scene.add(this.arena.getMesh());
+
+    // Give camera access to arena for collision
+    this.cameraController.setArena(this.arena);
 
     // Give camera access to input manager for mouse look
     this.cameraController.setInputManager(this.inputManager);
@@ -139,6 +146,30 @@ export class Game {
       this.scene.remove(exp.getMesh());
       exp.dispose();
     }
+  }
+
+  recreateArena(mapId) {
+    // Remove old arena
+    this.scene.remove(this.arena.getMesh());
+    this.arena.dispose();
+
+    // Create new arena
+    this.arena = new Arena(mapId);
+    this.scene.add(this.arena.getMesh());
+
+    // Update camera reference
+    this.cameraController.setArena(this.arena);
+
+    // Update references in systems
+    this.roundManager.setEntities(this.player, this.bot, this.missile, this.arena);
+    
+    // Update spawn positions
+    const spawnPositions = this.arena.getSpawnPositions();
+    this.player.setPosition(spawnPositions.player.position.x, 0, spawnPositions.player.position.z);
+    this.bot.setPosition(spawnPositions.bot.position.x, 0, spawnPositions.bot.position.z);
+    
+    // Reset rotations
+    this.cameraController.setRotation(spawnPositions.player.rotation, Math.PI / 12);
   }
 
   initSystems() {
@@ -382,6 +413,12 @@ export class Game {
   }
 
   startGame() {
+    // Check if map changed
+    const selectedMap = this.uiManager.getMap();
+    if (this.arena.mapId !== selectedMap) {
+      this.recreateArena(selectedMap);
+    }
+
     this.uiManager.hideAll();
     this.player.getMesh().visible = true;
     this.bot.getMesh().visible = true;
@@ -503,7 +540,18 @@ export class Game {
     const position = target.getPosition();
     position.y += PLAYER.HEIGHT / 2;
     const teamId = this.missile.teamId;
-    const explosion = new Explosion(position, teamId);
+    
+    // Try to get from pool
+    let explosion;
+    const pool = this.explosionPools[teamId];
+    
+    if (pool && pool.length > 0) {
+      explosion = pool.pop();
+      explosion.reset(position);
+    } else {
+      explosion = new Explosion(position, teamId);
+    }
+    
     this.explosions.push(explosion);
     this.scene.add(explosion.getMesh());
   }
@@ -530,7 +578,15 @@ export class Game {
       explosion.update(deltaTime);
       if (explosion.isDone()) {
         this.scene.remove(explosion.getMesh());
-        explosion.dispose();
+        
+        // Return to pool
+        const teamId = explosion.teamId;
+        if (this.explosionPools[teamId]) {
+          this.explosionPools[teamId].push(explosion);
+        } else {
+          explosion.dispose();
+        }
+        
         this.explosions.splice(i, 1);
       }
     }
@@ -605,6 +661,14 @@ export class Game {
       explosion.dispose();
     }
     this.explosions = [];
+
+    // Dispose explosion pools
+    for (const pool of Object.values(this.explosionPools)) {
+      for (const explosion of pool) {
+        explosion.dispose();
+      }
+    }
+    this.explosionPools = { player: [], bot: [] };
 
     // Dispose deflect effects
     for (const effect of this.deflectEffects) {

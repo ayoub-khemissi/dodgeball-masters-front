@@ -1,5 +1,5 @@
 import { globalEvents } from "../utils/EventEmitter.js";
-import { EVENTS, GAME_STATES, PLAYER } from "../utils/Constants.js";
+import { EVENTS, GAME_STATES, PLAYER, MAPS } from "../utils/Constants.js";
 import { MathUtils } from "../utils/MathUtils.js";
 
 /**
@@ -85,6 +85,15 @@ export class UIManager {
           </div>
         </div>
 
+        <!-- Map Selector -->
+        <div class="mb-8">
+          <p class="text-xs text-slate-500 uppercase tracking-widest mb-3">Arena Map</p>
+          <div class="flex justify-center gap-2" id="map-selector">
+            <button class="map-btn px-4 py-2 rounded text-sm font-bold transition-all border border-cyan-500 bg-cyan-500/20 text-cyan-400" data-map="orbital">Orbital</button>
+            <button class="map-btn px-4 py-2 rounded text-sm font-bold transition-all border border-white/10 hover:border-purple-500/50 text-slate-400 hover:text-purple-400" data-map="gladiator">Gladiator</button>
+          </div>
+        </div>
+
         <div class="flex flex-col gap-4 max-w-xs mx-auto">
           <button class="btn-primary group cursor-pointer" id="btn-start">
             <span class="group-hover:translate-x-1 transition-transform inline-block">Start Training</span>
@@ -95,8 +104,9 @@ export class UIManager {
     `;
     this.container.appendChild(this.mainMenu);
 
-    // Setup difficulty selector
+    // Setup selectors
     this.setupDifficultySelector();
+    this.setupMapSelector();
   }
 
   setupDifficultySelector() {
@@ -140,6 +150,47 @@ export class UIManager {
       const btn = this.mainMenu.querySelector(`[data-difficulty="${saved}"]`);
       if (btn) btn.click();
     }
+  }
+
+  setupMapSelector() {
+    this.selectedMap = "orbital";
+    const buttons = this.mainMenu.querySelectorAll(".map-btn");
+
+    buttons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        this.selectedMap = btn.dataset.map;
+
+        buttons.forEach((b) => {
+          if (b.dataset.map === this.selectedMap) {
+            b.className =
+              "map-btn px-4 py-2 rounded text-sm font-bold transition-all border border-cyan-500 bg-cyan-500/20 text-cyan-400";
+          } else {
+            b.className =
+              "map-btn px-4 py-2 rounded text-sm font-bold transition-all border border-white/10 hover:border-purple-500/50 text-slate-400 hover:text-purple-400";
+          }
+        });
+
+        localStorage.setItem("dodgeball_map_selection", this.selectedMap);
+
+        if (this.onMapChange) {
+          this.onMapChange(this.selectedMap);
+        }
+      });
+    });
+
+    const saved = localStorage.getItem("dodgeball_map_selection");
+    if (saved && (saved === "orbital" || saved === "gladiator")) {
+      const btn = this.mainMenu.querySelector(`[data-map="${saved}"]`);
+      if (btn) btn.click();
+    }
+  }
+
+  getMap() {
+    return this.selectedMap;
+  }
+
+  bindMapChange(callback) {
+    this.onMapChange = callback;
   }
 
   getDifficultyColor(difficulty) {

@@ -9,6 +9,7 @@ import { AssetManager } from './AssetManager.js';
  */
 
 const CAMERA_MODE_STORAGE_KEY = 'dodgeball_camera_mode';
+const CAMERA_SETTINGS_STORAGE_KEY = 'dodgeball_camera_settings';
 
 export class CameraController {
   constructor() {
@@ -52,8 +53,16 @@ export class CameraController {
     this.fpsWeapon = null;
     this.loadFPSWeapon();
 
+    // Collision detection
+    this.raycaster = new THREE.Raycaster();
+    this.arena = null;
+
     this.setInitialPosition();
     this.setupResizeHandler();
+  }
+
+  setArena(arena) {
+    this.arena = arena;
   }
 
   loadFPSWeapon() {
@@ -220,6 +229,29 @@ export class CameraController {
 
     const desiredPosition = new THREE.Vector3(camX, camY, camZ);
 
+    // Camera Collision Detection
+    if (this.arena && this.arena.model) {
+      const direction = new THREE.Vector3().subVectors(desiredPosition, targetPos);
+      const dist = direction.length();
+      
+      if (dist > 0.001) {
+        direction.normalize();
+
+        this.raycaster.set(targetPos, direction);
+        this.raycaster.far = dist;
+
+        // Intersect with arena model
+        const intersects = this.raycaster.intersectObject(this.arena.model, true);
+
+        if (intersects.length > 0) {
+          // We hit something, clamp distance
+          // Add a small buffer to avoid seeing through the wall
+          const hitDist = Math.max(0.2, intersects[0].distance - 0.2);
+          desiredPosition.copy(targetPos).add(direction.multiplyScalar(hitDist));
+        }
+      }
+    }
+
     // Direct camera positioning (No smoothing)
     this.currentPosition.copy(desiredPosition);
 
@@ -364,11 +396,30 @@ export class CameraController {
    */
   applySavedMode(player) {
     this.target = player;
+    this.loadSavedSettings();
+    this.updateTargetMeshVisibility();
+  }
+
+  /**
+   * Load saved camera settings from localStorage
+   */
+  loadSavedSettings() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(CAMERA_SETTINGS_STORAGE_KEY));
+      if (saved) {
+        if (saved.fov !== undefined) this.setFOV(saved.fov);
+        if (saved.distance !== undefined) this.distance = saved.distance;
+        if (saved.heightOffset !== undefined) this.heightOffset = saved.heightOffset;
+        if (saved.sideOffset !== undefined) this.sideOffset = saved.sideOffset;
+        return;
+      }
+    } catch (e) {
+      console.warn('Could not load camera settings from localStorage:', e);
+    }
+    // Defaults if nothing saved
     this.distance = 4;
     this.heightOffset = 0;
     this.sideOffset = 0;
-
-    this.updateTargetMeshVisibility();
   }
 
   /**

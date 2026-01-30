@@ -136,18 +136,6 @@ export class Player extends Entity {
     head.castShadow = true;
     group.add(head);
 
-    // Direction indicator (small cone in front)
-    const dirGeometry = new THREE.ConeGeometry(0.15, 0.3, 8);
-    const dirMaterial = new THREE.MeshStandardMaterial({
-      color: 0xffffff,
-      emissive: 0xffffff,
-      emissiveIntensity: 0.3,
-    });
-    const dirIndicator = new THREE.Mesh(dirGeometry, dirMaterial);
-    dirIndicator.rotation.x = Math.PI / 2;
-    dirIndicator.position.set(0, PLAYER.HEIGHT / 2, -PLAYER.RADIUS - 0.2);
-    group.add(dirIndicator);
-
     this.mesh = group;
     this.mesh.position.copy(this.position);
   }

@@ -8,11 +8,12 @@ import { AssetManager } from '../core/AssetManager.js';
  */
 
 export class Arena {
-  constructor() {
+  constructor(mapId = 'orbital') {
     this.group = new THREE.Group();
     this.radius = ARENA.RADIUS;
     this.waterMesh = null;
     this.time = 0;
+    this.mapId = mapId;
 
     // Raycaster for floor detection
     this.raycaster = new THREE.Raycaster();
@@ -23,12 +24,14 @@ export class Arena {
 
   init() {
     // Check if we have a loaded map model
-    const arenaModel = AssetManager.getModelClone('arena');
+    const mapKey = `map_${this.mapId}`;
+    const arenaModel = AssetManager.getModelClone(mapKey);
+    
     if (arenaModel) {
       arenaModel.scale.set(3, 3, 3);
       this.group.add(arenaModel);
       this.model = arenaModel; // Store reference for raycasting
-      console.log('Using loaded arena model (scaled x3)');
+      console.log(`Using loaded arena model: ${this.mapId} (scaled x3)`);
       return;
     }
 

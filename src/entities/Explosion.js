@@ -13,8 +13,26 @@ export class Explosion {
     this.elapsed = 0;
     this.done = false;
     this.materials = [];
+    this.teamId = teamId;
 
     this.setupModel(teamId);
+  }
+
+  reset(position) {
+    this.group.position.copy(position);
+    this.elapsed = 0;
+    this.done = false;
+    this.group.visible = true;
+    
+    // Reset scale
+    if (this.model) {
+      this.model.scale.set(0.01, 0.01, 0.01);
+    }
+    
+    // Reset opacity
+    for (const mat of this.materials) {
+      mat.opacity = 1.0;
+    }
   }
 
   setupModel(teamId) {
@@ -93,15 +111,9 @@ export class Explosion {
 
   dispose() {
     for (const mat of this.materials) {
-      if (mat.map) mat.map.dispose();
+      // Do not dispose mat.map as it is shared!
       mat.dispose();
     }
-    if (this.model) {
-      this.model.traverse((child) => {
-        if (child.isMesh && child.geometry) {
-          child.geometry.dispose();
-        }
-      });
-    }
+    // Do not dispose geometry as it is shared via AssetManager!
   }
 }
