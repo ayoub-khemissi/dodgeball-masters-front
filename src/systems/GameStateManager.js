@@ -21,6 +21,9 @@ export class GameStateManager {
     // Timing
     this.stateTimer = 0;
     this.countdownValue = 0;
+    this.savedStateTimer = 0;
+    this.pendingRoundTimer = null;
+    this.pendingMatchEndTimer = null;
 
     // Statistics
     this.stats = {
@@ -146,11 +149,34 @@ export class GameStateManager {
 
     this.setState(GAME_STATES.ROUND_END);
 
+    // Clear any existing timers
+    this.clearPendingTimers();
+
     // Check for match end
     if (this.playerScore >= this.roundsToWin || this.botScore >= this.roundsToWin) {
-      setTimeout(() => this.endMatch(audioManager), GAME.ROUND_END_DELAY);
+      this.pendingMatchEndTimer = setTimeout(() => {
+        this.pendingMatchEndTimer = null;
+        this.endMatch(audioManager);
+      }, GAME.ROUND_END_DELAY);
     } else {
-      setTimeout(() => this.startRound(), GAME.ROUND_END_DELAY);
+      this.pendingRoundTimer = setTimeout(() => {
+        this.pendingRoundTimer = null;
+        this.startRound();
+      }, GAME.ROUND_END_DELAY);
+    }
+  }
+
+  /**
+   * Clear pending round/match timers
+   */
+  clearPendingTimers() {
+    if (this.pendingRoundTimer) {
+      clearTimeout(this.pendingRoundTimer);
+      this.pendingRoundTimer = null;
+    }
+    if (this.pendingMatchEndTimer) {
+      clearTimeout(this.pendingMatchEndTimer);
+      this.pendingMatchEndTimer = null;
     }
   }
 
@@ -180,11 +206,20 @@ export class GameStateManager {
   pause() {
     // Allow pausing during Gameplay, Countdown, or Round End
     if (
-      this.currentState === GAME_STATES.PLAYING || 
-      this.currentState === GAME_STATES.COUNTDOWN || 
+      this.currentState === GAME_STATES.PLAYING ||
+      this.currentState === GAME_STATES.COUNTDOWN ||
       this.currentState === GAME_STATES.ROUND_END
     ) {
       this.stateBeforePause = this.currentState;
+
+      // Save countdown progress if pausing during countdown
+      if (this.currentState === GAME_STATES.COUNTDOWN) {
+        this.savedStateTimer = this.stateTimer;
+      }
+
+      // Clear pending timers to prevent state changes while paused
+      this.clearPendingTimers();
+
       this.setState(GAME_STATES.PAUSED);
       globalEvents.emit(EVENTS.GAME_PAUSE);
     }
@@ -198,7 +233,29 @@ export class GameStateManager {
       // Restore the state we were in before pausing
       const targetState = this.stateBeforePause || GAME_STATES.PLAYING;
       this.setState(targetState);
+
+      // Restore countdown progress if resuming to countdown
+      if (targetState === GAME_STATES.COUNTDOWN) {
+        this.stateTimer = this.savedStateTimer;
+      }
+
       globalEvents.emit(EVENTS.GAME_RESUME);
+
+      // If resuming from ROUND_END, restart the round transition timer
+      if (targetState === GAME_STATES.ROUND_END) {
+        // Check for match end
+        if (this.playerScore >= this.roundsToWin || this.botScore >= this.roundsToWin) {
+          this.pendingMatchEndTimer = setTimeout(() => {
+            this.pendingMatchEndTimer = null;
+            this.endMatch();
+          }, GAME.ROUND_END_DELAY);
+        } else {
+          this.pendingRoundTimer = setTimeout(() => {
+            this.pendingRoundTimer = null;
+            this.startRound();
+          }, GAME.ROUND_END_DELAY);
+        }
+      }
     }
   }
 
@@ -217,6 +274,7 @@ export class GameStateManager {
    * Return to menu
    */
   returnToMenu() {
+    this.clearPendingTimers();
     this.setState(GAME_STATES.MENU);
   }
 

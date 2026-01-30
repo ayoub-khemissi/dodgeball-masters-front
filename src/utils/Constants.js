@@ -91,7 +91,7 @@ export const DEFLECTION = {
 };
 
 export const ARENA = {
-  RADIUS: 35, // Circular arena radius (larger)
+  RADIUS: 45, // Circular arena radius (larger)
   WALL_HEIGHT: 4,
   WATER_SIZE: 150, // Size of water plane
 };

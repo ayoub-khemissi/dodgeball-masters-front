@@ -229,7 +229,7 @@ export class Bot extends Entity {
     this.missileRef = missile;
   }
 
-  update(deltaTime, missilePosition = null) {
+  update(deltaTime, missilePosition = null, arena = null) {
     if (!this.isActive || !this.isAlive) return;
 
     // Update deflect cooldown
@@ -239,6 +239,13 @@ export class Bot extends Entity {
         this.canDeflect = true;
         this.deflectCooldown = 0;
       }
+    }
+
+    // Update position to match ground height
+    if (arena && arena.getFloorHeight) {
+      this.position.y = arena.getFloorHeight(this.position.x, this.position.z);
+    } else {
+      this.position.y = 0;
     }
 
     // Update reaction timer (for deflect delay)

@@ -39,7 +39,6 @@ export class Game {
     this.isRunning = false;
     this.clock = new THREE.Clock();
     this.lastInputTime = 0;
-    this.isResuming = false;
     this.explosions = [];
     this.deflectEffects = [];
 
@@ -279,39 +278,32 @@ export class Game {
   }
 
   setupEventListeners() {
-    // Pointer lock handles the Pause/Resume state transitions to avoid race conditions
+    // Pointer lock change handler - only used for detecting external unlock (clicking outside, etc.)
     this.inputManager.on('pointerlockchange', (isLocked) => {
-      this.isResuming = false; // Reset flag
       const currentState = this.gameStateManager.getState();
 
-      if (isLocked) {
-        // If we just acquired the lock and were paused, resume
-        if (currentState === GAME_STATES.PAUSED) {
-          this.gameStateManager.resume();
-          this.uiManager.hidePauseMenu();
-        }
-      } else {
-        // If we just lost the lock and were in an active game state, pause
+      if (!isLocked) {
+        // Pointer was unlocked externally (not by our pause action)
+        // Only auto-pause if we're in an active game state and not already handling it
         if (currentState !== GAME_STATES.MENU &&
           currentState !== GAME_STATES.PAUSED &&
           currentState !== GAME_STATES.MATCH_END) {
-
-          this.gameStateManager.pause();
-          this.uiManager.showPauseMenu();
+          this.pauseGame();
         }
       }
     });
 
-    // Handle pointer lock errors
+    // Handle pointer lock errors - just retry silently
     this.inputManager.on('pointerlockerror', () => {
-      this.isResuming = false; // Reset flag
-      console.warn('Pointer lock denied/error');
-      // If we failed to get the lock while trying to resume, make sure we stay/return to pause menu
-      if (!this.gameStateManager.isState(GAME_STATES.PAUSED) &&
-        !this.gameStateManager.isState(GAME_STATES.MENU)) {
-        this.gameStateManager.pause();
-        this.uiManager.showPauseMenu();
-      }
+      // Retry after a short delay if game is not paused
+      setTimeout(() => {
+        const currentState = this.gameStateManager.getState();
+        if (currentState !== GAME_STATES.MENU &&
+          currentState !== GAME_STATES.PAUSED &&
+          currentState !== GAME_STATES.MATCH_END) {
+          this.inputManager.requestPointerLock(this.canvas);
+        }
+      }, 100);
     });
 
     // Listen for state changes
@@ -329,7 +321,7 @@ export class Game {
       this.player.setMovementLocked(true);
     });
 
-    // Handle Escape key (UI Navigation)
+    // Handle Escape key for pause/resume toggle
     this.inputManager.on('keydown', ({ key }) => {
       if (key === 'Escape') {
         // 1. If Settings are open, close them first
@@ -337,22 +329,20 @@ export class Game {
           this.uiManager.hideSettingsMenu();
           return;
         }
-        
-        // Note: We do NOT handle Resume here. 
-        // Requesting pointer lock on Escape KEYDOWN causes the browser to 
-        // immediately unlock because Escape is the reserved "Exit" key.
-        // We handle Resume on KEYUP instead.
-      }
-    });
 
-    // Handle Escape key (Game Resume)
-    this.inputManager.on('keyup', ({ key }) => {
-      if (key === 'Escape') {
         const currentState = this.gameStateManager.getState();
-        
-        // If Paused, try to Resume (on key UP to avoid browser conflict)
-        if (currentState === GAME_STATES.PAUSED && !this.uiManager.isSettingsOpen()) {
+
+        // 2. If paused, resume
+        if (currentState === GAME_STATES.PAUSED) {
           this.resumeGame();
+          return;
+        }
+
+        // 3. If in active game state, pause
+        if (currentState === GAME_STATES.PLAYING ||
+          currentState === GAME_STATES.COUNTDOWN ||
+          currentState === GAME_STATES.ROUND_END) {
+          this.pauseGame();
         }
       }
     });
@@ -406,14 +396,22 @@ export class Game {
     this.gameStateManager.startMatch();
   }
 
+  pauseGame() {
+    const currentState = this.gameStateManager.getState();
+    if (currentState !== GAME_STATES.MENU &&
+      currentState !== GAME_STATES.PAUSED &&
+      currentState !== GAME_STATES.MATCH_END) {
+      this.gameStateManager.pause();
+      this.uiManager.showPauseMenu();
+      this.inputManager.exitPointerLock();
+    }
+  }
+
   resumeGame() {
-    // Only request lock if we are actually paused and not already trying to resume
-    if (this.gameStateManager.isState(GAME_STATES.PAUSED) && !this.isResuming) {
-        this.isResuming = true;
-        this.inputManager.requestPointerLock(this.canvas);
-        
-        // Failsafe: Reset flag after 250ms if lock never happens
-        setTimeout(() => { this.isResuming = false; }, 250);
+    if (this.gameStateManager.isState(GAME_STATES.PAUSED)) {
+      this.gameStateManager.resume();
+      this.uiManager.hidePauseMenu();
+      this.inputManager.requestPointerLock(this.canvas);
     }
   }
 
@@ -556,11 +554,11 @@ export class Game {
 
     // Update bot (pass missile position for AI tracking)
     const missilePos = this.missile.isActive ? this.missile.getPosition() : null;
-    this.bot.update(deltaTime, missilePos);
+    this.bot.update(deltaTime, missilePos, this.arena);
 
     // Update missile
     if (this.missile.isActive) {
-      this.missile.update(deltaTime);
+      this.missile.update(deltaTime, this.arena);
     }
 
     // Update collision system

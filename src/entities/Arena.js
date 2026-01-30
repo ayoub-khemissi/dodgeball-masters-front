@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { ARENA, COLORS } from '../utils/Constants.js';
+import { AssetManager } from '../core/AssetManager.js';
 
 /**
  * Arena
@@ -13,14 +14,43 @@ export class Arena {
     this.waterMesh = null;
     this.time = 0;
 
+    // Raycaster for floor detection
+    this.raycaster = new THREE.Raycaster();
+    this.downVector = new THREE.Vector3(0, -1, 0);
+
     this.init();
   }
 
   init() {
+    // Check if we have a loaded map model
+    const arenaModel = AssetManager.getModelClone('arena');
+    if (arenaModel) {
+      arenaModel.scale.set(3, 3, 3);
+      this.group.add(arenaModel);
+      this.model = arenaModel; // Store reference for raycasting
+      console.log('Using loaded arena model (scaled x3)');
+      return;
+    }
+
     this.createFloor();
     this.createWalls();
     this.createWater();
     this.createCenterMarking();
+  }
+
+  /**
+   * Get floor height at position (x, z)
+   */
+  getFloorHeight(x, z) {
+    if (this.model) {
+      this.raycaster.set(new THREE.Vector3(x, 20, z), this.downVector);
+      const intersects = this.raycaster.intersectObject(this.model, true);
+      
+      if (intersects.length > 0) {
+        return intersects[0].point.y;
+      }
+    }
+    return 0; // Default floor height
   }
 
   createFloor() {

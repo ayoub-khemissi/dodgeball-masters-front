@@ -164,7 +164,7 @@ export class Player extends Entity {
     this.handleRotation();
 
     // Handle jump
-    this.handleJump(deltaTime);
+    this.handleJump(deltaTime, arena);
 
     // Update deflect cooldown
     if (!this.canDeflect) {
@@ -280,12 +280,17 @@ export class Player extends Entity {
     this.missile = missile;
   }
 
-  handleJump(deltaTime) {
+  handleJump(deltaTime, arena) {
+    // Get ground height at current position
+    const groundHeight = arena && arena.getFloorHeight ? arena.getFloorHeight(this.position.x, this.position.z) : 0;
+
     // Check for jump input
     if (this.inputManager.isJumpPressed() && this.isGrounded && this.canJump) {
       this.velocityY = this.jumpForce;
       this.isGrounded = false;
       this.canJump = false;
+      // Ensure we start from at least ground height
+      this.position.y = Math.max(this.position.y, groundHeight) + 0.1;
     }
 
     // Release jump lock when space is released
@@ -299,11 +304,14 @@ export class Player extends Entity {
       this.position.y += this.velocityY * deltaTime;
 
       // Check ground collision
-      if (this.position.y <= 0) {
-        this.position.y = 0;
+      if (this.position.y <= groundHeight) {
+        this.position.y = groundHeight;
         this.velocityY = 0;
         this.isGrounded = true;
       }
+    } else {
+      // Stay on ground (handle slopes)
+      this.position.y = groundHeight;
     }
   }
 

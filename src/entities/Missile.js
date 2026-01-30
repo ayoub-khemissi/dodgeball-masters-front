@@ -85,7 +85,7 @@ export class Missile extends Entity {
     this.particles = [];
   }
 
-  update(deltaTime) {
+  update(deltaTime, arena = null) {
     if (!this.isActive || !this.target) return;
 
     // Store previous position for collision detection
@@ -131,7 +131,7 @@ export class Missile extends Entity {
     this.position.add(this.velocity.clone().multiplyScalar(deltaTime));
 
     // Constrain to environment (floor + arena boundary)
-    this.constrainToEnvironment();
+    this.constrainToEnvironment(arena);
 
     // Rotate mesh to face direction of travel
     if (this.mesh) {
@@ -150,9 +150,11 @@ export class Missile extends Entity {
    * Constrain missile position to environment bounds (floor, arena boundary, walls)
    * Removes velocity component pushing into the surface so the missile slides along it.
    */
-  constrainToEnvironment() {
+  constrainToEnvironment(arena) {
     // Floor constraint
-    const minY = MISSILE.RADIUS;
+    const groundHeight = arena && arena.getFloorHeight ? arena.getFloorHeight(this.position.x, this.position.z) : 0;
+    const minY = groundHeight + MISSILE.RADIUS;
+    
     if (this.position.y < minY) {
       this.position.y = minY;
       if (this.velocity.y < 0) {
