@@ -1,6 +1,6 @@
-import { globalEvents } from '../utils/EventEmitter.js';
-import { EVENTS, GAME_STATES, PLAYER } from '../utils/Constants.js';
-import { MathUtils } from '../utils/MathUtils.js';
+import { globalEvents } from "../utils/EventEmitter.js";
+import { EVENTS, GAME_STATES, PLAYER } from "../utils/Constants.js";
+import { MathUtils } from "../utils/MathUtils.js";
 
 /**
  * UIManager
@@ -25,9 +25,10 @@ export class UIManager {
 
   init() {
     // Create UI container
-    this.container = document.createElement('div');
-    this.container.id = 'ui-container';
-    this.container.className = 'fixed inset-0 pointer-events-none z-50 font-sans';
+    this.container = document.createElement("div");
+    this.container.id = "ui-container";
+    this.container.className =
+      "fixed inset-0 pointer-events-none z-50 font-sans";
     document.body.appendChild(this.container);
 
     // Create UI elements
@@ -53,7 +54,9 @@ export class UIManager {
     globalEvents.on(EVENTS.MISSILE_DEFLECT, (data) => this.onDeflection(data));
     globalEvents.on(EVENTS.MISSILE_SPAWN, () => this.resetMissileStats());
 
-    globalEvents.on(`state:${GAME_STATES.PLAYING}`, (data) => this.onGamePlaying(data));
+    globalEvents.on(`state:${GAME_STATES.PLAYING}`, (data) =>
+      this.onGamePlaying(data),
+    );
     globalEvents.on(`state:${GAME_STATES.PAUSED}`, () => this.showPauseMenu());
     globalEvents.on(`state:${GAME_STATES.MENU}`, () => this.showMainMenu());
   }
@@ -61,8 +64,9 @@ export class UIManager {
   // --- UI Creation Methods ---
 
   createMainMenu() {
-    this.mainMenu = document.createElement('div');
-    this.mainMenu.className = 'absolute inset-0 flex items-center justify-center bg-slate-950/90 backdrop-blur-sm pointer-events-auto transition-opacity duration-300';
+    this.mainMenu = document.createElement("div");
+    this.mainMenu.className =
+      "absolute inset-0 flex items-center justify-center bg-slate-950/90 backdrop-blur-sm pointer-events-auto transition-opacity duration-300";
     this.mainMenu.innerHTML = `
       <div class="panel-glass p-12 max-w-2xl w-full text-center transform transition-all duration-500 hover:border-cyan-500/30">
         <h1 class="text-6xl font-black mb-2 tracking-tighter bg-linear-to-r from-cyan-400 via-blue-500 to-purple-600 bg-clip-text text-transparent drop-shadow-lg">
@@ -77,6 +81,7 @@ export class UIManager {
             <button class="difficulty-btn px-4 py-2 rounded text-sm font-bold transition-all border border-white/10 hover:border-green-500/50 text-slate-400 hover:text-green-400" data-difficulty="easy">Easy</button>
             <button class="difficulty-btn px-4 py-2 rounded text-sm font-bold transition-all border border-cyan-500 bg-cyan-500/20 text-cyan-400" data-difficulty="medium">Medium</button>
             <button class="difficulty-btn px-4 py-2 rounded text-sm font-bold transition-all border border-white/10 hover:border-red-500/50 text-slate-400 hover:text-red-400" data-difficulty="hard">Hard</button>
+            <button class="difficulty-btn px-4 py-2 rounded text-sm font-bold transition-all border border-white/10 hover:border-purple-500/50 text-slate-400 hover:text-purple-400" data-difficulty="apocalypse">Apocalypse</button>
           </div>
         </div>
 
@@ -95,16 +100,16 @@ export class UIManager {
   }
 
   setupDifficultySelector() {
-    this.selectedDifficulty = 'medium';
-    const buttons = this.mainMenu.querySelectorAll('.difficulty-btn');
+    this.selectedDifficulty = "medium";
+    const buttons = this.mainMenu.querySelectorAll(".difficulty-btn");
 
-    buttons.forEach(btn => {
-      btn.addEventListener('click', () => {
+    buttons.forEach((btn) => {
+      btn.addEventListener("click", () => {
         // Update selection
         this.selectedDifficulty = btn.dataset.difficulty;
 
         // Update button styles
-        buttons.forEach(b => {
+        buttons.forEach((b) => {
           if (b.dataset.difficulty === this.selectedDifficulty) {
             const color = this.getDifficultyColor(b.dataset.difficulty);
             b.className = `difficulty-btn px-4 py-2 rounded text-sm font-bold transition-all border ${color.border} ${color.bg} ${color.text}`;
@@ -115,7 +120,10 @@ export class UIManager {
         });
 
         // Save preference
-        localStorage.setItem('dodgeball_bot_difficulty', this.selectedDifficulty);
+        localStorage.setItem(
+          "dodgeball_bot_difficulty",
+          this.selectedDifficulty,
+        );
 
         // Emit event for Game to handle
         if (this.onDifficultyChange) {
@@ -125,8 +133,8 @@ export class UIManager {
     });
 
     // Load saved difficulty
-    const saved = localStorage.getItem('dodgeball_bot_difficulty');
-    if (saved && ['easy', 'medium', 'hard'].includes(saved)) {
+    const saved = localStorage.getItem("dodgeball_bot_difficulty");
+    if (saved && ["easy", "medium", "hard", "apocalypse"].includes(saved)) {
       this.selectedDifficulty = saved;
       // Trigger click to update UI
       const btn = this.mainMenu.querySelector(`[data-difficulty="${saved}"]`);
@@ -136,12 +144,38 @@ export class UIManager {
 
   getDifficultyColor(difficulty) {
     switch (difficulty) {
-      case 'easy':
-        return { border: 'border-green-500', bg: 'bg-green-500/20', text: 'text-green-400', hover: 'hover:border-green-500/50', hoverText: 'hover:text-green-400' };
-      case 'hard':
-        return { border: 'border-red-500', bg: 'bg-red-500/20', text: 'text-red-400', hover: 'hover:border-red-500/50', hoverText: 'hover:text-red-400' };
+      case "easy":
+        return {
+          border: "border-green-500",
+          bg: "bg-green-500/20",
+          text: "text-green-400",
+          hover: "hover:border-green-500/50",
+          hoverText: "hover:text-green-400",
+        };
+      case "hard":
+        return {
+          border: "border-red-500",
+          bg: "bg-red-500/20",
+          text: "text-red-400",
+          hover: "hover:border-red-500/50",
+          hoverText: "hover:text-red-400",
+        };
+      case "apocalypse":
+        return {
+          border: "border-purple-500",
+          bg: "bg-purple-500/20",
+          text: "text-purple-400",
+          hover: "hover:border-purple-500/50",
+          hoverText: "hover:text-purple-400",
+        };
       default:
-        return { border: 'border-cyan-500', bg: 'bg-cyan-500/20', text: 'text-cyan-400', hover: 'hover:border-cyan-500/50', hoverText: 'hover:text-cyan-400' };
+        return {
+          border: "border-cyan-500",
+          bg: "bg-cyan-500/20",
+          text: "text-cyan-400",
+          hover: "hover:border-cyan-500/50",
+          hoverText: "hover:text-cyan-400",
+        };
     }
   }
 
@@ -154,8 +188,8 @@ export class UIManager {
   }
 
   createHUD() {
-    this.hud = document.createElement('div');
-    this.hud.className = 'absolute inset-0 pointer-events-none hidden';
+    this.hud = document.createElement("div");
+    this.hud.className = "absolute inset-0 pointer-events-none hidden";
     this.hud.innerHTML = `
       <!-- Top Central Control Panel -->
       <div class="absolute top-0 left-1/2 -translate-x-1/2 flex items-stretch bg-slate-900/90 backdrop-blur-md border-x border-b border-white/10 rounded-b-2xl shadow-[0_10px_40px_rgba(0,0,0,0.5)] animate-slide-in overflow-hidden">
@@ -217,8 +251,9 @@ export class UIManager {
   }
 
   createPauseMenu() {
-    this.pauseMenu = document.createElement('div');
-    this.pauseMenu.className = 'absolute inset-0 flex items-center justify-center bg-slate-950/80 backdrop-blur pointer-events-auto hidden z-50';
+    this.pauseMenu = document.createElement("div");
+    this.pauseMenu.className =
+      "absolute inset-0 flex items-center justify-center bg-slate-950/80 backdrop-blur pointer-events-auto hidden z-50";
     this.pauseMenu.innerHTML = `
       <div class="panel-glass p-10 text-center min-w-75">
         <h2 class="text-3xl font-black text-white mb-8 tracking-widest border-b border-white/10 pb-4">PAUSED</h2>
@@ -233,8 +268,9 @@ export class UIManager {
   }
 
   createSettingsMenu() {
-    this.settingsMenu = document.createElement('div');
-    this.settingsMenu.className = 'absolute inset-0 flex items-center justify-center bg-slate-950/90 backdrop-blur pointer-events-auto hidden z-50';
+    this.settingsMenu = document.createElement("div");
+    this.settingsMenu.className =
+      "absolute inset-0 flex items-center justify-center bg-slate-950/90 backdrop-blur pointer-events-auto hidden z-50";
     this.settingsMenu.innerHTML = `
       <div class="panel-glass p-8 w-full max-w-2xl max-h-[80vh] overflow-y-auto flex flex-col">
         <h2 class="text-2xl font-black text-white mb-6 tracking-widest border-b border-white/10 pb-4 flex justify-between items-center">
@@ -354,8 +390,9 @@ export class UIManager {
   }
 
   createConfirmationModal() {
-    this.confirmationModal = document.createElement('div');
-    this.confirmationModal.className = 'absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm pointer-events-auto hidden z-[60]';
+    this.confirmationModal = document.createElement("div");
+    this.confirmationModal.className =
+      "absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm pointer-events-auto hidden z-[60]";
     this.confirmationModal.innerHTML = `
       <div class="panel-glass p-8 max-w-sm w-full text-center border-rose-500/30">
         <h3 class="text-xl font-bold text-white mb-4">Confirm Reset</h3>
@@ -369,50 +406,54 @@ export class UIManager {
     this.container.appendChild(this.confirmationModal);
 
     // Bind basic close/cancel
-    document.getElementById('btn-confirm-cancel').addEventListener('click', () => {
-      this.confirmationModal.classList.add('hidden');
-      this.confirmationModal.classList.remove('flex');
-    });
+    document
+      .getElementById("btn-confirm-cancel")
+      .addEventListener("click", () => {
+        this.confirmationModal.classList.add("hidden");
+        this.confirmationModal.classList.remove("flex");
+      });
   }
 
   showConfirmationModal(message, onConfirm) {
-    document.getElementById('confirmation-message').textContent = message;
+    document.getElementById("confirmation-message").textContent = message;
 
     // Replace old confirm button to clear previous listeners
-    const oldBtn = document.getElementById('btn-confirm-ok');
+    const oldBtn = document.getElementById("btn-confirm-ok");
     const newBtn = oldBtn.cloneNode(true);
     oldBtn.parentNode.replaceChild(newBtn, oldBtn);
 
-    newBtn.addEventListener('click', () => {
+    newBtn.addEventListener("click", () => {
       onConfirm();
-      this.confirmationModal.classList.add('hidden');
-      this.confirmationModal.classList.remove('flex');
+      this.confirmationModal.classList.add("hidden");
+      this.confirmationModal.classList.remove("flex");
     });
 
-    this.confirmationModal.classList.remove('hidden');
-    this.confirmationModal.classList.add('flex');
+    this.confirmationModal.classList.remove("hidden");
+    this.confirmationModal.classList.add("flex");
   }
 
   setupSettingsTabs() {
-    const tabs = this.settingsMenu.querySelectorAll('[data-tab]');
-    const contents = this.settingsMenu.querySelectorAll('.settings-content');
+    const tabs = this.settingsMenu.querySelectorAll("[data-tab]");
+    const contents = this.settingsMenu.querySelectorAll(".settings-content");
 
-    tabs.forEach(tab => {
-      tab.addEventListener('click', () => {
+    tabs.forEach((tab) => {
+      tab.addEventListener("click", () => {
         // Reset tabs
-        tabs.forEach(t => {
-          t.className = 'px-4 py-2 text-sm font-bold uppercase tracking-wider text-slate-500 hover:text-slate-300 transition-colors';
+        tabs.forEach((t) => {
+          t.className =
+            "px-4 py-2 text-sm font-bold uppercase tracking-wider text-slate-500 hover:text-slate-300 transition-colors";
         });
         // Activate current
-        tab.className = 'px-4 py-2 text-sm font-bold uppercase tracking-wider text-cyan-400 border-b-2 border-cyan-400 transition-colors';
+        tab.className =
+          "px-4 py-2 text-sm font-bold uppercase tracking-wider text-cyan-400 border-b-2 border-cyan-400 transition-colors";
 
         // Show content
         const target = tab.dataset.tab;
-        contents.forEach(content => {
+        contents.forEach((content) => {
           if (content.id === `settings-${target}`) {
-            content.classList.remove('hidden');
+            content.classList.remove("hidden");
           } else {
-            content.classList.add('hidden');
+            content.classList.add("hidden");
           }
         });
       });
@@ -420,8 +461,9 @@ export class UIManager {
   }
 
   createMatchEndScreen() {
-    this.matchEndScreen = document.createElement('div');
-    this.matchEndScreen.className = 'absolute inset-0 flex items-center justify-center bg-slate-950/90 backdrop-blur-md pointer-events-auto hidden z-50';
+    this.matchEndScreen = document.createElement("div");
+    this.matchEndScreen.className =
+      "absolute inset-0 flex items-center justify-center bg-slate-950/90 backdrop-blur-md pointer-events-auto hidden z-50";
     this.matchEndScreen.innerHTML = `
       <div class="panel-glass p-12 text-center max-w-lg w-full transform transition-all">
         <h1 class="text-5xl font-black mb-2 tracking-tighter" id="result-title">VICTORY</h1>
@@ -453,8 +495,9 @@ export class UIManager {
   }
 
   createCountdown() {
-    this.countdown = document.createElement('div');
-    this.countdown.className = 'absolute inset-0 flex items-center justify-center pointer-events-none hidden z-40';
+    this.countdown = document.createElement("div");
+    this.countdown.className =
+      "absolute inset-0 flex items-center justify-center pointer-events-none hidden z-40";
     this.countdown.innerHTML = `
       <span class="text-9xl font-black text-white drop-shadow-[0_0_30px_rgba(6,182,212,0.8)] animate-pulse" id="countdown-number">3</span>
     `;
@@ -462,8 +505,9 @@ export class UIManager {
   }
 
   createRoundAnnouncement() {
-    this.roundAnnouncement = document.createElement('div');
-    this.roundAnnouncement.className = 'absolute inset-0 flex items-center justify-center pointer-events-none hidden z-40 bg-black/20';
+    this.roundAnnouncement = document.createElement("div");
+    this.roundAnnouncement.className =
+      "absolute inset-0 flex items-center justify-center pointer-events-none hidden z-40 bg-black/20";
     this.roundAnnouncement.innerHTML = `
       <div class="transform transition-all duration-300 scale-150" id="announcement-wrapper">
         <span class="text-6xl font-black tracking-tighter uppercase drop-shadow-2xl" id="announcement-text">ROUND 1</span>
@@ -475,107 +519,111 @@ export class UIManager {
   // --- Event Handlers ---
 
   onRoundStart(data) {
-    document.getElementById('round-counter').textContent = `ROUND ${data.round}`;
+    document.getElementById("round-counter").textContent =
+      `ROUND ${data.round}`;
     this.updateScores(data.playerScore, data.botScore);
     this.resetHUD();
 
     // Explicitly reset countdown text
-    const number = document.getElementById('countdown-number');
-    number.textContent = '3';
-    number.classList.add('animate-pulse');
-    number.classList.remove('animate-ping');
+    const number = document.getElementById("countdown-number");
+    number.textContent = "3";
+    number.classList.add("animate-pulse");
+    number.classList.remove("animate-ping");
 
-    this.countdown.classList.remove('hidden');
-    this.countdown.classList.add('flex');
+    this.countdown.classList.remove("hidden");
+    this.countdown.classList.add("flex");
   }
 
   onCountdown(data) {
-    const number = document.getElementById('countdown-number');
+    const number = document.getElementById("countdown-number");
     number.textContent = data.value;
 
     // Switch to ping animation for counting down
-    number.classList.remove('animate-pulse');
-    number.classList.remove('animate-ping');
+    number.classList.remove("animate-pulse");
+    number.classList.remove("animate-ping");
     void number.offsetWidth; // Trigger reflow
-    number.classList.add('animate-ping');
+    number.classList.add("animate-ping");
   }
 
   onGamePlaying(data) {
     this.hidePauseMenu();
-    this.countdown.classList.add('hidden');
-    this.countdown.classList.remove('flex');
-    this.hud.classList.remove('hidden');
+    this.countdown.classList.add("hidden");
+    this.countdown.classList.remove("flex");
+    this.hud.classList.remove("hidden");
 
     if (data && data.previousState === GAME_STATES.COUNTDOWN) {
-      const number = document.getElementById('countdown-number');
-      number.textContent = 'GO!';
-      number.classList.remove('animate-ping');
-      number.classList.add('animate-pulse');
+      const number = document.getElementById("countdown-number");
+      number.textContent = "GO!";
+      number.classList.remove("animate-ping");
+      number.classList.add("animate-pulse");
 
-      this.countdown.classList.remove('hidden');
-      this.countdown.classList.add('flex');
+      this.countdown.classList.remove("hidden");
+      this.countdown.classList.add("flex");
 
       setTimeout(() => {
-        this.countdown.classList.add('hidden');
-        this.countdown.classList.remove('flex');
+        this.countdown.classList.add("hidden");
+        this.countdown.classList.remove("flex");
       }, 500);
     }
   }
 
   onRoundEnd(data) {
-    const isWin = data.winner === 'player';
-    const text = isWin ? 'ROUND WON' : 'ROUND LOST';
-    const colorClass = isWin ? 'text-green-400' : 'text-rose-500';
+    const isWin = data.winner === "player";
+    const text = isWin ? "ROUND WON" : "ROUND LOST";
+    const colorClass = isWin ? "text-green-400" : "text-rose-500";
 
     this.showAnnouncement(text, colorClass);
     this.updateScores(data.playerScore, data.botScore);
   }
 
   onMatchEnd(data) {
-    this.hud.classList.add('hidden');
-    const isWin = data.winner === 'player';
+    this.hud.classList.add("hidden");
+    const isWin = data.winner === "player";
 
-    const title = document.getElementById('result-title');
-    title.textContent = isWin ? 'VICTORY' : 'DEFEAT';
-    title.className = `text-6xl font-black mb-2 tracking-tighter ${isWin ? 'text-green-400 drop-shadow-[0_0_20px_rgba(74,222,128,0.5)]' : 'text-rose-500 drop-shadow-[0_0_20px_rgba(244,63,94,0.5)]'}`;
+    const title = document.getElementById("result-title");
+    title.textContent = isWin ? "VICTORY" : "DEFEAT";
+    title.className = `text-6xl font-black mb-2 tracking-tighter ${isWin ? "text-green-400 drop-shadow-[0_0_20px_rgba(74,222,128,0.5)]" : "text-rose-500 drop-shadow-[0_0_20px_rgba(244,63,94,0.5)]"}`;
 
-    document.getElementById('final-player-score').textContent = data.playerScore;
-    document.getElementById('final-bot-score').textContent = data.botScore;
+    document.getElementById("final-player-score").textContent =
+      data.playerScore;
+    document.getElementById("final-bot-score").textContent = data.botScore;
 
-    const stats = document.getElementById('match-stats');
+    const stats = document.getElementById("match-stats");
     const duration = Math.floor(data.stats.matchDuration / 1000);
     stats.innerHTML = `
-      <div class="flex justify-between border-b border-white/5 pb-2"><span>Match Duration</span> <span class="text-white">${Math.floor(duration / 60)}:${(duration % 60).toString().padStart(2, '0')}</span></div>
+      <div class="flex justify-between border-b border-white/5 pb-2"><span>Match Duration</span> <span class="text-white">${Math.floor(duration / 60)}:${(duration % 60).toString().padStart(2, "0")}</span></div>
       <div class="flex justify-between pt-2"><span>Total Deflections</span> <span class="text-white">${data.stats.totalDeflections}</span></div>
     `;
 
-    this.matchEndScreen.classList.remove('hidden');
-    this.matchEndScreen.classList.add('flex');
+    this.matchEndScreen.classList.remove("hidden");
+    this.matchEndScreen.classList.add("flex");
   }
 
   onPlayerDamage(data) {
     this.updateHealth(data.health, PLAYER.MAX_HEALTH);
 
     // Flash Red Overlay
-    const flash = document.createElement('div');
-    flash.className = 'fixed inset-0 bg-red-500/20 pointer-events-none z-0';
+    const flash = document.createElement("div");
+    flash.className = "fixed inset-0 bg-red-500/20 pointer-events-none z-0";
     document.body.appendChild(flash);
     setTimeout(() => flash.remove(), 150);
   }
 
   onDeflection(data) {
     const speedMultiplier = (data.speed / 5).toFixed(2);
-    document.getElementById('missile-speed').textContent = `SPEED: ${speedMultiplier}x`;
+    document.getElementById("missile-speed").textContent =
+      `SPEED: ${speedMultiplier}x`;
 
     const defCount = data.deflector ? this.getDeflectionCount() + 1 : 0;
-    document.getElementById('deflection-count').textContent = `DEFLECTIONS: ${defCount}`;
+    document.getElementById("deflection-count").textContent =
+      `DEFLECTIONS: ${defCount}`;
   }
 
   // --- Update Methods ---
 
   updateHealth(health, maxHealth = 100) {
-    const fill = document.getElementById('health-fill');
-    const text = document.getElementById('health-text');
+    const fill = document.getElementById("health-fill");
+    const text = document.getElementById("health-text");
 
     const clampedHealth = MathUtils.clamp(health, 0, maxHealth);
     const percentage = (clampedHealth / maxHealth) * 100;
@@ -584,15 +632,18 @@ export class UIManager {
     text.textContent = `${Math.round(clampedHealth)}%`;
 
     // Dynamic Color
-    fill.className = `absolute top-0 left-0 h-full w-full transition-all duration-300 ease-out ${percentage > 50 ? 'bg-gradient-to-r from-green-500 to-emerald-400' :
-      percentage > 20 ? 'bg-gradient-to-r from-yellow-500 to-orange-500' :
-        'bg-gradient-to-r from-red-600 to-rose-500 animate-pulse'
-      }`;
+    fill.className = `absolute top-0 left-0 h-full w-full transition-all duration-300 ease-out ${
+      percentage > 50
+        ? "bg-gradient-to-r from-green-500 to-emerald-400"
+        : percentage > 20
+          ? "bg-gradient-to-r from-yellow-500 to-orange-500"
+          : "bg-gradient-to-r from-red-600 to-rose-500 animate-pulse"
+    }`;
   }
 
   updateScores(playerScore, botScore) {
-    document.getElementById('player-score').textContent = playerScore;
-    document.getElementById('bot-score').textContent = botScore;
+    document.getElementById("player-score").textContent = playerScore;
+    document.getElementById("bot-score").textContent = botScore;
   }
 
   resetHUD() {
@@ -601,99 +652,108 @@ export class UIManager {
   }
 
   resetMissileStats() {
-    document.getElementById('missile-speed').textContent = 'SPEED: 1.0x';
-    document.getElementById('deflection-count').textContent = 'DEFLECTIONS: 0';
+    document.getElementById("missile-speed").textContent = "SPEED: 1.0x";
+    document.getElementById("deflection-count").textContent = "DEFLECTIONS: 0";
   }
 
   showAnnouncement(text, colorClass) {
-    const announcement = document.getElementById('announcement-text');
+    const announcement = document.getElementById("announcement-text");
     announcement.textContent = text;
     announcement.className = `text-6xl font-black tracking-tighter uppercase drop-shadow-2xl ${colorClass}`;
 
-    this.roundAnnouncement.classList.remove('hidden');
-    this.roundAnnouncement.classList.add('flex');
+    this.roundAnnouncement.classList.remove("hidden");
+    this.roundAnnouncement.classList.add("flex");
 
     // Simple fade out
     setTimeout(() => {
-      this.roundAnnouncement.classList.remove('flex');
-      this.roundAnnouncement.classList.add('hidden');
+      this.roundAnnouncement.classList.remove("flex");
+      this.roundAnnouncement.classList.add("hidden");
     }, 1500);
   }
 
   getDeflectionCount() {
-    const text = document.getElementById('deflection-count').textContent;
-    return parseInt(text.split(': ')[1]) || 0;
+    const text = document.getElementById("deflection-count").textContent;
+    return parseInt(text.split(": ")[1]) || 0;
   }
 
   isSettingsOpen() {
-    return !this.settingsMenu.classList.contains('hidden');
+    return !this.settingsMenu.classList.contains("hidden");
   }
 
   // --- Screen Management ---
 
   showMainMenu() {
     this.hideAll();
-    this.mainMenu.classList.remove('hidden');
-    this.mainMenu.classList.add('flex');
+    this.mainMenu.classList.remove("hidden");
+    this.mainMenu.classList.add("flex");
   }
 
   showHUD() {
     this.hideAll();
-    this.hud.classList.remove('hidden');
+    this.hud.classList.remove("hidden");
   }
 
   showPauseMenu() {
-    this.pauseMenu.classList.remove('hidden');
-    this.pauseMenu.classList.add('flex');
+    this.pauseMenu.classList.remove("hidden");
+    this.pauseMenu.classList.add("flex");
   }
 
   hidePauseMenu() {
-    this.pauseMenu.classList.remove('flex');
-    this.pauseMenu.classList.add('hidden');
+    this.pauseMenu.classList.remove("flex");
+    this.pauseMenu.classList.add("hidden");
   }
 
   showSettingsMenu() {
-    this.settingsMenu.classList.remove('hidden');
-    this.settingsMenu.classList.add('flex');
+    this.settingsMenu.classList.remove("hidden");
+    this.settingsMenu.classList.add("flex");
 
     // If pause menu is open, hide it
-    if (!this.pauseMenu.classList.contains('hidden')) {
-      this.pauseMenu.classList.add('hidden');
-      this.pauseMenu.dataset.wasOpen = 'true';
+    if (!this.pauseMenu.classList.contains("hidden")) {
+      this.pauseMenu.classList.add("hidden");
+      this.pauseMenu.dataset.wasOpen = "true";
     } else {
-      this.pauseMenu.dataset.wasOpen = 'false';
+      this.pauseMenu.dataset.wasOpen = "false";
     }
 
     // If main menu is open, hide it
-    if (!this.mainMenu.classList.contains('hidden')) {
-      this.mainMenu.classList.add('hidden');
-      this.mainMenu.dataset.wasOpen = 'true';
+    if (!this.mainMenu.classList.contains("hidden")) {
+      this.mainMenu.classList.add("hidden");
+      this.mainMenu.dataset.wasOpen = "true";
     } else {
-      this.mainMenu.dataset.wasOpen = 'false';
+      this.mainMenu.dataset.wasOpen = "false";
     }
   }
 
   hideSettingsMenu() {
-    this.settingsMenu.classList.add('hidden');
-    this.settingsMenu.classList.remove('flex');
+    this.settingsMenu.classList.add("hidden");
+    this.settingsMenu.classList.remove("flex");
 
     // Restore previous menu
-    if (this.pauseMenu.dataset.wasOpen === 'true') {
-      this.pauseMenu.classList.remove('hidden');
-      this.pauseMenu.classList.add('flex');
+    if (this.pauseMenu.dataset.wasOpen === "true") {
+      this.pauseMenu.classList.remove("hidden");
+      this.pauseMenu.classList.add("flex");
     }
 
-    if (this.mainMenu.dataset.wasOpen === 'true') {
-      this.mainMenu.classList.remove('hidden');
-      this.mainMenu.classList.add('flex');
+    if (this.mainMenu.dataset.wasOpen === "true") {
+      this.mainMenu.classList.remove("hidden");
+      this.mainMenu.classList.add("flex");
     }
   }
 
   hideAll() {
-    [this.mainMenu, this.hud, this.pauseMenu, this.matchEndScreen, this.countdown, this.roundAnnouncement, this.settingsMenu, this.confirmationModal].forEach(el => {
+    [
+      this.mainMenu,
+      this.hud,
+      this.pauseMenu,
+      this.matchEndScreen,
+      this.countdown,
+      this.roundAnnouncement,
+      this.settingsMenu,
+      this.confirmationModal,
+    ].forEach((el) => {
       if (el) {
-        el.classList.add('hidden');
-        el.classList.remove('flex');
+        el.classList.add("hidden");
+        el.classList.remove("flex");
       }
     });
   }
@@ -701,27 +761,39 @@ export class UIManager {
   // --- Bindings ---
 
   bindStartButton(callback) {
-    document.getElementById('btn-start').addEventListener('click', callback);
+    document.getElementById("btn-start").addEventListener("click", callback);
   }
 
   bindResumeButton(callback) {
-    document.getElementById('btn-resume').addEventListener('click', callback);
+    document.getElementById("btn-resume").addEventListener("click", callback);
   }
 
   bindQuitButton(callback) {
-    document.getElementById('btn-quit').addEventListener('click', callback);
+    document.getElementById("btn-quit").addEventListener("click", callback);
   }
 
   bindPlayAgainButton(callback) {
-    document.getElementById('btn-play-again').addEventListener('click', callback);
+    document
+      .getElementById("btn-play-again")
+      .addEventListener("click", callback);
   }
 
   bindMainMenuButton(callback) {
-    document.getElementById('btn-main-menu').addEventListener('click', callback);
+    document
+      .getElementById("btn-main-menu")
+      .addEventListener("click", callback);
   }
 
   bindSettingsActions(callbacks) {
-    const { onCameraChange, onAudioChange, onControlChange, onResetCamera, onResetControls, onResetAudio, getValues } = callbacks;
+    const {
+      onCameraChange,
+      onAudioChange,
+      onControlChange,
+      onResetCamera,
+      onResetControls,
+      onResetAudio,
+      getValues,
+    } = callbacks;
 
     // Open function
     const openSettings = () => {
@@ -732,110 +804,128 @@ export class UIManager {
     };
 
     // Open/Close
-    document.getElementById('btn-settings-open').addEventListener('click', openSettings);
-    document.getElementById('btn-settings-main').addEventListener('click', openSettings);
+    document
+      .getElementById("btn-settings-open")
+      .addEventListener("click", openSettings);
+    document
+      .getElementById("btn-settings-main")
+      .addEventListener("click", openSettings);
 
-    document.getElementById('btn-settings-close').addEventListener('click', () => this.hideSettingsMenu());
-    document.getElementById('btn-settings-save').addEventListener('click', () => this.hideSettingsMenu());
+    document
+      .getElementById("btn-settings-close")
+      .addEventListener("click", () => this.hideSettingsMenu());
+    document
+      .getElementById("btn-settings-save")
+      .addEventListener("click", () => this.hideSettingsMenu());
 
     // Camera Mode
-    const btnFps = document.getElementById('cam-mode-fps');
-    const btnTps = document.getElementById('cam-mode-tps');
-    const tpsSettings = document.getElementById('tps-settings');
+    const btnFps = document.getElementById("cam-mode-fps");
+    const btnTps = document.getElementById("cam-mode-tps");
+    const tpsSettings = document.getElementById("tps-settings");
 
     const updateModeUI = (mode) => {
-      if (mode === 'fps') {
-        btnFps.className = 'px-4 py-1 text-xs font-bold rounded transition-colors bg-cyan-600 text-white';
-        btnTps.className = 'px-4 py-1 text-xs font-bold rounded transition-colors text-slate-400 hover:text-white';
-        tpsSettings.classList.add('opacity-50', 'pointer-events-none');
+      if (mode === "fps") {
+        btnFps.className =
+          "px-4 py-1 text-xs font-bold rounded transition-colors bg-cyan-600 text-white";
+        btnTps.className =
+          "px-4 py-1 text-xs font-bold rounded transition-colors text-slate-400 hover:text-white";
+        tpsSettings.classList.add("opacity-50", "pointer-events-none");
       } else {
-        btnFps.className = 'px-4 py-1 text-xs font-bold rounded transition-colors text-slate-400 hover:text-white';
-        btnTps.className = 'px-4 py-1 text-xs font-bold rounded transition-colors bg-cyan-600 text-white';
-        tpsSettings.classList.remove('opacity-50', 'pointer-events-none');
+        btnFps.className =
+          "px-4 py-1 text-xs font-bold rounded transition-colors text-slate-400 hover:text-white";
+        btnTps.className =
+          "px-4 py-1 text-xs font-bold rounded transition-colors bg-cyan-600 text-white";
+        tpsSettings.classList.remove("opacity-50", "pointer-events-none");
       }
     };
 
-    btnFps.addEventListener('click', () => {
-      updateModeUI('fps');
-      onCameraChange({ mode: 'fps' });
+    btnFps.addEventListener("click", () => {
+      updateModeUI("fps");
+      onCameraChange({ mode: "fps" });
     });
 
-    btnTps.addEventListener('click', () => {
-      updateModeUI('tps');
-      onCameraChange({ mode: 'tps' });
+    btnTps.addEventListener("click", () => {
+      updateModeUI("tps");
+      onCameraChange({ mode: "tps" });
     });
 
     // Sliders
     const bindSlider = (id, valId, key, transform = (v) => v) => {
       const el = document.getElementById(id);
       const label = document.getElementById(valId);
-      el.addEventListener('input', (e) => {
+      el.addEventListener("input", (e) => {
         const val = parseFloat(e.target.value);
         label.textContent = transform(val);
         onCameraChange({ [key]: val });
       });
     };
 
-    bindSlider('input-fov', 'val-fov', 'fov');
-    bindSlider('input-dist', 'val-dist', 'distance');
-    bindSlider('input-height', 'val-height', 'heightOffset', (v) => v.toFixed(1));
-    bindSlider('input-side', 'val-side', 'sideOffset', (v) => v.toFixed(1));
+    bindSlider("input-fov", "val-fov", "fov");
+    bindSlider("input-dist", "val-dist", "distance");
+    bindSlider("input-height", "val-height", "heightOffset", (v) =>
+      v.toFixed(1),
+    );
+    bindSlider("input-side", "val-side", "sideOffset", (v) => v.toFixed(1));
 
     // Audio
-    const volSlider = document.getElementById('input-volume');
-    const volLabel = document.getElementById('val-volume');
-    volSlider.addEventListener('input', (e) => {
+    const volSlider = document.getElementById("input-volume");
+    const volLabel = document.getElementById("val-volume");
+    volSlider.addEventListener("input", (e) => {
       const val = parseFloat(e.target.value);
       volLabel.textContent = `${Math.round(val)}%`;
       onAudioChange(val / 100);
     });
 
     // Controls
-    const bindButtons = document.querySelectorAll('.key-bind-btn');
-    bindButtons.forEach(btn => {
-      btn.addEventListener('click', () => {
+    const bindButtons = document.querySelectorAll(".key-bind-btn");
+    bindButtons.forEach((btn) => {
+      btn.addEventListener("click", () => {
         const action = btn.dataset.action;
         const originalText = btn.textContent;
 
-        btn.textContent = '...';
-        btn.classList.add('bg-cyan-600', 'text-white');
+        btn.textContent = "...";
+        btn.classList.add("bg-cyan-600", "text-white");
 
         const handleKey = (e) => {
           e.preventDefault();
           e.stopPropagation();
 
-          if (e.code === 'Escape') {
+          if (e.code === "Escape") {
             btn.textContent = originalText;
           } else {
             btn.textContent = e.code;
             onControlChange(action, e.code);
           }
 
-          btn.classList.remove('bg-cyan-600', 'text-white');
-          window.removeEventListener('keydown', handleKey);
+          btn.classList.remove("bg-cyan-600", "text-white");
+          window.removeEventListener("keydown", handleKey);
         };
 
-        window.addEventListener('keydown', handleKey, { once: true });
+        window.addEventListener("keydown", handleKey, { once: true });
       });
     });
 
     // Reset Buttons
-    document.getElementById('btn-reset-camera').addEventListener('click', () => {
-      this.showConfirmationModal('Reset camera settings to default?', () => {
-        onResetCamera();
-        this.updateSettingsUI(getValues());
+    document
+      .getElementById("btn-reset-camera")
+      .addEventListener("click", () => {
+        this.showConfirmationModal("Reset camera settings to default?", () => {
+          onResetCamera();
+          this.updateSettingsUI(getValues());
+        });
       });
-    });
 
-    document.getElementById('btn-reset-controls').addEventListener('click', () => {
-      this.showConfirmationModal('Reset control bindings to default?', () => {
-        onResetControls();
-        this.updateSettingsUI(getValues());
+    document
+      .getElementById("btn-reset-controls")
+      .addEventListener("click", () => {
+        this.showConfirmationModal("Reset control bindings to default?", () => {
+          onResetControls();
+          this.updateSettingsUI(getValues());
+        });
       });
-    });
 
-    document.getElementById('btn-reset-audio').addEventListener('click', () => {
-      this.showConfirmationModal('Reset audio settings to default?', () => {
+    document.getElementById("btn-reset-audio").addEventListener("click", () => {
+      this.showConfirmationModal("Reset audio settings to default?", () => {
         onResetAudio();
         this.updateSettingsUI(getValues());
       });
@@ -849,45 +939,50 @@ export class UIManager {
       const { mode, fov, distance, heightOffset, sideOffset } = values.camera;
 
       // Mode
-      const btnFps = document.getElementById('cam-mode-fps');
-      const btnTps = document.getElementById('cam-mode-tps');
-      const tpsSettings = document.getElementById('tps-settings');
+      const btnFps = document.getElementById("cam-mode-fps");
+      const btnTps = document.getElementById("cam-mode-tps");
+      const tpsSettings = document.getElementById("tps-settings");
 
-      if (mode === 'fps') {
-        btnFps.className = 'px-4 py-1 text-xs font-bold rounded transition-colors bg-cyan-600 text-white';
-        btnTps.className = 'px-4 py-1 text-xs font-bold rounded transition-colors text-slate-400 hover:text-white';
-        tpsSettings.classList.add('opacity-50', 'pointer-events-none');
+      if (mode === "fps") {
+        btnFps.className =
+          "px-4 py-1 text-xs font-bold rounded transition-colors bg-cyan-600 text-white";
+        btnTps.className =
+          "px-4 py-1 text-xs font-bold rounded transition-colors text-slate-400 hover:text-white";
+        tpsSettings.classList.add("opacity-50", "pointer-events-none");
       } else {
-        btnFps.className = 'px-4 py-1 text-xs font-bold rounded transition-colors text-slate-400 hover:text-white';
-        btnTps.className = 'px-4 py-1 text-xs font-bold rounded transition-colors bg-cyan-600 text-white';
-        tpsSettings.classList.remove('opacity-50', 'pointer-events-none');
+        btnFps.className =
+          "px-4 py-1 text-xs font-bold rounded transition-colors text-slate-400 hover:text-white";
+        btnTps.className =
+          "px-4 py-1 text-xs font-bold rounded transition-colors bg-cyan-600 text-white";
+        tpsSettings.classList.remove("opacity-50", "pointer-events-none");
       }
 
       // Sliders
-      document.getElementById('input-fov').value = fov;
-      document.getElementById('val-fov').textContent = fov;
+      document.getElementById("input-fov").value = fov;
+      document.getElementById("val-fov").textContent = fov;
 
-      document.getElementById('input-dist').value = distance;
-      document.getElementById('val-dist').textContent = distance;
+      document.getElementById("input-dist").value = distance;
+      document.getElementById("val-dist").textContent = distance;
 
-      document.getElementById('input-height').value = heightOffset;
-      document.getElementById('val-height').textContent = heightOffset.toFixed(1);
+      document.getElementById("input-height").value = heightOffset;
+      document.getElementById("val-height").textContent =
+        heightOffset.toFixed(1);
 
-      document.getElementById('input-side').value = sideOffset;
-      document.getElementById('val-side').textContent = sideOffset.toFixed(1);
+      document.getElementById("input-side").value = sideOffset;
+      document.getElementById("val-side").textContent = sideOffset.toFixed(1);
     }
 
     // Audio
     if (values.volume !== undefined) {
       const vol = Math.round(values.volume * 100);
-      document.getElementById('input-volume').value = vol;
-      document.getElementById('val-volume').textContent = `${vol}%`;
+      document.getElementById("input-volume").value = vol;
+      document.getElementById("val-volume").textContent = `${vol}%`;
     }
 
     // Controls
     if (values.bindings) {
-      const btns = document.querySelectorAll('.key-bind-btn');
-      btns.forEach(btn => {
+      const btns = document.querySelectorAll(".key-bind-btn");
+      btns.forEach((btn) => {
         const action = btn.dataset.action;
         if (values.bindings[action]) {
           btn.textContent = values.bindings[action];
