@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dodgeball Masters</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&family=JetBrains+Mono:wght@400;700&display=swap"
+    rel="stylesheet">
+  <script type="module" crossorigin src="./assets/index-C6Cv8Ggv.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-BBrBh50c.css">
+</head>
+
+<body>
+  <!-- Loading Screen -->
+  <div id="loading-screen" class="fixed inset-0 z-100 flex flex-col items-center justify-center bg-slate-950">
+    <h1
+      class="text-4xl font-black mb-2 tracking-tighter bg-linear-to-r from-cyan-400 via-blue-500 to-purple-600 bg-clip-text text-transparent">
+      DODGEBALL MASTERS
+    </h1>
+    <p class="text-sm text-slate-500 mb-8 tracking-widest">LOADING ASSETS</p>
+
+    <!-- Progress Bar Container -->
+    <div class="w-80 h-2 bg-slate-800 rounded-full overflow-hidden border border-slate-700">
+      <div id="loading-progress"
+        class="h-full bg-linear-to-r from-cyan-500 to-blue-500 transition-all duration-150 ease-out" style="width: 0%">
+      </div>
+    </div>
+
+    <!-- Progress Text -->
+    <p id="loading-text" class="mt-4 text-xs text-slate-400 font-mono">0%</p>
+  </div>
+
+  <canvas id="game-canvas"></canvas>
+</body>
+
+</html>
